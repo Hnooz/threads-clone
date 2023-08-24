@@ -8,10 +8,12 @@ export default defineNuxtConfig({
       autoprefixer: {},
     },
   },
+  supabase: {
+    redirect: false
+    },
   modules : [
     'nuxt-icon',
-    // '@nuxtjs/tailwindcss',
-    // '@nuxtjs/supabase',
+    '@nuxtjs/supabase',
     '@pinia/nuxt',
     '@vite-pwa/nuxt',
   ],

@@ -5,10 +5,6 @@
                 <div id="Posts" class="px-4 max-w-[600px] mx-auto">
                     <div  v-for="post in posts" :key="post">
                         <Post v-if="isPosts" :post="post" @isDeleted="posts = []" />
-                        <Post v-if="isPosts" :post="post" @isDeleted="posts = []" />
-                        <Post v-if="isPosts" :post="post" @isDeleted="posts = []" />
-                        <Post v-if="isPosts" :post="post" @isDeleted="posts = []" />
-                        <Post v-if="isPosts" :post="post" @isDeleted="posts = []" />
                     </div>
                 </div>
             </div>
@@ -21,11 +17,17 @@
     import { useUserStore } from '~/stores/user';
 
     const userStore = useUserStore()
-    // const user = useSupabaseUser()
+    const user = useSupabaseUser()
 
     const posts = ref([])
     const isPosts = ref(true)
     const isLoading = ref(false)
+
+    watchEffect(() => {
+        if (!user.value) {
+            return navigateTo('/login')
+        }
+    })
 
     onMounted(() => {
         posts.value = [
