@@ -17,10 +17,10 @@ model Posts {
   text String
   picture String
   createdAt DateTime @default(now())
-  links Links[]
+  likes Likes[]
 }
 
-model Links {
+model Likes {
   id Int @id @default(autoincrement())
   userId String @db.Uuid
   postId Int

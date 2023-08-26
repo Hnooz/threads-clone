@@ -13,6 +13,7 @@
             provider: prov,
             redirectTo: window.location.origin
         })
+        console.log(true);
         if (error) console.log(error)
     }
 </script>

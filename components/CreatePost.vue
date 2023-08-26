@@ -2,8 +2,8 @@
     import { v4 as uuidv4 } from 'uuid'
     import { useUserStore } from '~/stores/user';
 
-    // const client = useSupabaseClient()
-    // const user = useSupabaseUser()
+    const client = useSupabaseClient()
+    const user = useSupabaseUser()
 
     const userStore = useUserStore()
     const content = ref('')
@@ -12,6 +12,9 @@
     const file = ref(null)
     const fileDisplay = ref(null)
     const fileData = ref(null)
+    const postData = ref(null)
+    const postError = ref(null)
+    const pic = ref('')
 
     const adjustTextareaHeight = () => {
         const textarea = document.getElementById("textarea")
@@ -29,6 +32,48 @@
     const onChange = () => {
         fileDisplay.value = URL.createObjectURL(file.value.files[0])
         fileData.value = file.value.files[0]
+    }
+
+    const submit = async () => {
+        isLoading.value = true
+        if (fileData.value) {
+            const { data, error } = await client
+                .storage
+                .from('threads-clone-files')
+                .upload(`${uuidv4()}.jpg`, fileData.value)
+            postData.value = data
+            postError.value = error
+        }
+        if (postError.value) {
+            console.log(postError.value)
+            return postError.value
+        }
+
+        if (postData.value) {
+            pic.value = postData.value.path ? postData.value.path : ''
+        }
+
+        try {
+            await useFetch('/api/create-post/', {
+                method: 'POST',
+                body : {
+                    userId: user.value.identities[0].user_id,
+                    name: user.value.identities[0].identity_data.full_name,
+                    image: user.value.identities[0].identity_data.avatar_url,
+                    text: content.value,
+                    picture: pic.value
+                }
+            })
+
+            await userStore.getAllPosts()
+            userStore.isMenuOverlay = false
+
+            clearData()
+            isLoading.value = false
+        } catch (error) {
+            console.log(error)
+            isLoading.value = false
+        }
     }
 
     const close = () => {
@@ -51,9 +96,9 @@
             <div id="Post" class="z-40 bottom-0 max-h-[100vh-200px] w-full px-3 max-w-[500px] mx-auto">
                 <div class="py-2 w-full">
                     <div class="flex items-center">
-                        <div class="flex items-center text-white">
-                            <img class="rounded-full h-[35px]" src="https://picsum.photos/id/223/50" alt="">
-                            <h1 class="ml-2 font-semibold text-[18px]">Hnooz Daily Blog</h1>
+                        <div v-if="user" class="flex items-center text-white">
+                            <img class="rounded-full h-[35px]" :src="user.identities[0].identity_data.avatar_url" alt="">
+                            <h1 class="ml-2 font-semibold text-[18px]">{{ user.identities[0].identity_data.full_name }}</h1>
                         </div>
                     </div>
                     <div class="relative flex items-center w-full">
@@ -82,7 +127,7 @@
                     </div>
                 </div>
             </div>
-            <button v-if="content" :disabled="isLoading"
+            <button v-if="content" @click="submit" :disabled="isLoading"
                 class="fixed bottom-0 font-bold text-lg w-full bg-black inline-block float-right p-4 border-t border-t-gray-700"
                 :class="isLoading ? 'text-gray-600' : 'text-blue-600'"
                 >
